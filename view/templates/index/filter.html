@@ -1,0 +1,16 @@
+{{define "filter"}}
+<form method="GET" action="/filtered-home">
+     <div class="filters-tabs">
+         <input type="submit" class="tab-button" name="tab-filter" value="Most Recent Posts">
+         <input type="submit" class="tab-button" name="tab-filter" value="Most Liked Posts">
+         <input type="submit" class="tab-button" name="tab-filter" value="Most hated Posts">
+     </div>
+ 
+     <div class="filter-categories">
+         {{range .CategoryNames}}
+         <input type="submit" class="categories-button" name="category" value="{{.Name}}">
+         {{end}}
+     </div>
+ </form>
+ 
+ {{end}}

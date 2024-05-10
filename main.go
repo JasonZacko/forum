@@ -1,36 +1,34 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/aquemaati/myGolangForum.git/internal/server"
 )
 
-const PORT = ":8080"
-
-var tpl *template.Template
-
-func init() {
-	// Parsing all html files
-	tpl = template.Must(template.New("").ParseGlob("views/**/*.html"))
-	// Listen statics files
-	fs := http.FileServer(http.Dir("public/assets"))
-	http.Handle("/public/", http.StripPrefix("/public/assets", fs))
-}
-
-func Home(w http.ResponseWriter, r *http.Request) {
-	tpl.ExecuteTemplate(w, "index.html", nil)
-}
-
 func main() {
+	fs := http.FileServer(http.Dir("static/"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// localHost link
-	fmt.Println("serving at : http://localhost" + PORT)
+	server, err := server.InitializeServer(".env", "database/database.db")
+	if err != nil {
+		log.Fatalf("error initializing server: %v\n", err)
+		return
+	}
 
-	http.HandleFunc("/", Home)
-	// Start forum
-	if err := http.ListenAndServe(PORT, nil); err != nil {
-		log.Fatalln(err)
+	certFile := os.Getenv("TLS_CERT")
+	keyFile := os.Getenv("TLS_KEY")
+	if certFile != "" && keyFile != "" {
+		log.Printf("Server listening on https://localhost%s", server.Addr)
+		if err := server.ListenAndServeTLS(certFile, keyFile); err != nil {
+			log.Fatalf("Error starting TLS server: %v", err)
+		}
+	} else {
+		log.Printf("Server listening on http://localhost%s", server.Addr)
+		if err := server.ListenAndServe(); err != nil {
+			log.Fatalf("Error starting server: %v", err)
+		}
 	}
 }
