@@ -58,8 +58,17 @@ func InitializeServer(envFilePath, dbPath string) (*http.Server, error) {
 
 	// Créez un multiplexer
 	mux := http.NewServeMux()
+	mux.Handle("/view/assets/", http.StripPrefix("/view/assets/", http.FileServer(http.Dir("view/assets"))))
+
 	mux.Handle("/", controller.Home(db, tpl))
 	mux.Handle("/test", controller.Test(db, tpl))
+	mux.Handle("/filtered-home", controller.FilteredHome(db, tpl))
+	mux.Handle("/postbyid", controller.UniquePost(db, tpl))
+	mux.Handle("/submit-signup", controller.SignUpSubmission(db, tpl))
+	mux.Handle("/signup", controller.SignUp(db, tpl))
+	mux.Handle("/signin", controller.SignIn(tpl))
+	mux.Handle("/submit-signin", controller.SignInSubmit(db, tpl))
+	mux.Handle("/disconnect", controller.Disconnect(db, tpl))
 
 	// Chaîne de middlewares
 	handler := middleware.Recovery(
